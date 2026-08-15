@@ -1,0 +1,171 @@
+---
+import type { RunSummary } from "../data/load";
+import { voteKey } from "../data/load";
+
+interface Props {
+  runs: RunSummary[];
+}
+const { runs } = Astro.props;
+
+const rows = runs.map((run) => ({
+  key: voteKey(run),
+  deviceId: run.deviceId,
+  runId: run.runId,
+  cpuModel: run.cpuModel,
+  model: run.model,
+  backend: run.backend,
+  powerAvailable: run.powerAvailable,
+  joulesPerToken: run.joulesPerToken,
+  joulesPerOutputToken: run.joulesPerOutputToken,
+  meanTps: run.meanTps,
+  meanTtftMs: run.meanTtftMs,
+  peakWatts: run.peakWatts,
+  memoryPeakGb: run.memoryPeakGb,
+  tokensPerKwh: run.tokensPerKwh,
+  totalTokens: run.totalTokens,
+  generatedAt: run.generatedAt,
+}));
+---
+
+<section class="card compare" id="compare-panel" hidden>
+  <h2>Compare</h2>
+  <div class="table-wrap">
+    <div id="compare-grid" class="compare-grid"></div>
+  </div>
+</section>
+
+<script type="application/json" id="compare-data" set:html={JSON.stringify(rows)}></script>
+
+<script>
+  interface CmpRow {
+    key: string;
+    deviceId: string;
+    runId: string;
+    cpuModel: string;
+    model: string;
+    backend: string;
+    powerAvailable: boolean;
+    joulesPerToken: number | null;
+    joulesPerOutputToken: number | null;
+    meanTps: number | null;
+    meanTtftMs: number | null;
+    peakWatts: number | null;
+    memoryPeakGb: number | null;
+    tokensPerKwh: number | null;
+    totalTokens: number | null;
+    generatedAt: string;
+  }
+
+  const rows: CmpRow[] = JSON.parse(document.getElementById("compare-data")!.textContent!);
+  const byKey = new Map(rows.map((r) => [r.key, r]));
+  const panel = document.getElementById("compare-panel")!;
+  const grid = document.getElementById("compare-grid")!;
+  let keys: string[] = parseCompareParam();
+
+  function parseCompareParam(): string[] {
+    const p = new URLSearchParams(location.search);
+    return (p.get("compare") ?? "").split(",").filter(Boolean);
+  }
+
+  function enc(s: string): string {
+    return encodeURIComponent(s);
+  }
+
+  function shortCpu(cpu: string): string {
+    return cpu
+      .replace(/Intel\(R\)|AMD |Ryzen |Core\(TM\)|@ [\d.]+GHz|Processor/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function backendClass(backend: string): string {
+    const b = backend.toLowerCase();
+    if (b.includes("npu")) return "tag-npu";
+    if (b.includes("vulkan")) return "tag-vulkan";
+    return "tag-cpu";
+  }
+
+  interface MetricRow {
+    label: string;
+    best?: "low" | "high";
+    text?: (r: CmpRow) => string;
+    num?: (r: CmpRow) => number | null;
+    fmt?: (v: number) => string;
+  }
+
+  const METRICS: MetricRow[] = [
+    { label: "Device", text: (r) => shortCpu(r.cpuModel) },
+    { label: "Model", text: (r) => r.model },
+    { label: "Backend", text: (r) => r.backend },
+    { label: "Power", text: (r) => (r.powerAvailable ? "yes" : "no") },
+    { label: "J/token", best: "low", num: (r) => r.joulesPerToken, fmt: (v) => v.toFixed(4) },
+    { label: "J/output token", best: "low", num: (r) => r.joulesPerOutputToken, fmt: (v) => v.toFixed(4) },
+    { label: "tok/s (mean)", best: "high", num: (r) => r.meanTps, fmt: (v) => v.toFixed(1) },
+    { label: "TTFT ms (mean)", best: "low", num: (r) => r.meanTtftMs, fmt: (v) => v.toFixed(1) },
+    { label: "peak W", best: "low", num: (r) => r.peakWatts, fmt: (v) => v.toFixed(1) },
+    { label: "memory peak GB", best: "low", num: (r) => r.memoryPeakGb, fmt: (v) => v.toFixed(1) },
+    { label: "tok/kWh", best: "high", num: (r) => r.tokensPerKwh, fmt: (v) => v.toLocaleString() },
+    { label: "total tokens", best: "high", num: (r) => r.totalTokens, fmt: (v) => v.toLocaleString() },
+    { label: "submitted", text: (r) => (r.generatedAt ? r.generatedAt.slice(0, 10) : "—") },
+  ];
+
+  function renderCompare() {
+    const selected = keys.map((k) => byKey.get(k)).filter((r): r is CmpRow => Boolean(r));
+    if (selected.length < 2) {
+      panel.hidden = true;
+      return;
+    }
+    panel.hidden = false;
+    grid.style.setProperty("--cmp-cols", String(selected.length));
+
+    const headers = selected
+      .map(
+        (r) => `
+      <div class="cmp-col">
+        <a class="cmp-title" href="/runs/${enc(r.deviceId)}/${enc(r.runId)}/">${shortCpu(r.cpuModel)}</a>
+        <div class="cmp-sub">${r.model}</div>
+        <div class="cmp-sub"><span class="pill ${backendClass(r.backend)}">${r.backend}</span></div>
+      </div>`,
+      )
+      .join("");
+
+    const bodyRows = METRICS.map((m) => {
+      let values: string[];
+      let bestIdx = -1;
+      if (m.num) {
+        const nums = selected.map(m.num);
+        let bestVal: number | null = null;
+        for (let i = 0; i < nums.length; i++) {
+          const v = nums[i];
+          if (v == null) continue;
+          if (bestVal == null || (m.best === "high" ? v > bestVal : v < bestVal)) {
+            bestVal = v;
+            bestIdx = i;
+          }
+        }
+        values = nums.map((v, i) => {
+          const s = v == null ? "—" : m.fmt!(v);
+          return `<div class="cmp-cell${i === bestIdx ? " best-val" : ""}">${s}</div>`;
+        });
+      } else {
+        values = selected.map((r) => `<div class="cmp-cell">${m.text!(r)}</div>`);
+      }
+      return `<div class="cmp-row">
+        <div class="cmp-label">${m.label}</div>
+        ${values.join("")}
+      </div>`;
+    });
+
+    grid.innerHTML = `<div class="cmp-row cmp-head">
+        <div class="cmp-label"></div>
+        ${headers}
+      </div>${bodyRows.join("")}`;
+  }
+
+  window.addEventListener("lm:compare", (e) => {
+    keys = (e as CustomEvent<string[]>).detail;
+    renderCompare();
+  });
+
+  renderCompare();
+</script>

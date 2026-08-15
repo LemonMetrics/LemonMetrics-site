@@ -1,0 +1,245 @@
+{
+  "device": {
+    "cpu": {
+      "logical_cores": 12,
+      "model": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz",
+      "physical_cores": 6
+    },
+    "device_id": "auto-7831edf654a6",
+    "fingerprint": "7831edf654a6",
+    "gpu": [
+      "Intel UHD Graphics 630",
+      "AMD Radeon Pro 5300M"
+    ],
+    "hostname": "Austins-MacBook-Pro-2.local",
+    "machine": "x86_64",
+    "memory_gb": 32.0,
+    "npu": [],
+    "os": "Darwin",
+    "os_release": "25.5.0"
+  },
+  "efficiency": {
+    "available": false,
+    "note": "no power source available"
+  },
+  "environment": {
+    "battery_percent": 80,
+    "cpu_governor": null,
+    "note": "measured alongside bench run",
+    "power_source": "ac",
+    "recorded_at": "2026-08-09T11:37:47+00:00",
+    "thermal_celsius": null
+  },
+  "generated_at": "2026-08-09T11:37:46+00:00",
+  "lemonade": {
+    "api_base": "http://localhost:13305/api/v1",
+    "bench_output": {
+      "hardware": {
+        "backends": {
+          "llamacpp/cpu": "b10241"
+        },
+        "cpu": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz",
+        "gpu": [],
+        "os": "linux",
+        "ram_gb": 15.69
+      },
+      "models": [
+        {
+          "config": {
+            "measurement_runs": 3,
+            "memory_tracking": true,
+            "warmup_runs": 0
+          },
+          "model": "Qwen3-0.6B-GGUF",
+          "results": [
+            {
+              "backend": "cpu",
+              "backend_args": "",
+              "ctx_size": 4096,
+              "recipe": "llamacpp",
+              "scenarios": [
+                {
+                  "category": "chat",
+                  "duration_ms": {
+                    "max": 584.095345,
+                    "mean": 572.9705676666667,
+                    "min": 565.12225,
+                    "p50": 569.694108,
+                    "p95": 582.6552213
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 27,
+                  "memory_peak_gb": 1.7,
+                  "name": "chat-short",
+                  "output_tokens": 20,
+                  "tps": {
+                    "max": 44.525381693834575,
+                    "mean": 44.297856101129774,
+                    "min": 44.12137791063215,
+                    "p50": 44.24680869892259,
+                    "p95": 44.49752439434338
+                  },
+                  "ttft_ms": {
+                    "max": 113.861,
+                    "mean": 104.70766666666667,
+                    "min": 96.722,
+                    "p50": 103.54,
+                    "p95": 112.8289
+                  }
+                },
+                {
+                  "category": "chat",
+                  "duration_ms": {
+                    "max": 6301.994442,
+                    "mean": 6254.420187666667,
+                    "min": 6189.604515,
+                    "p50": 6271.661606,
+                    "p95": 6298.9611584
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 44,
+                  "memory_peak_gb": 1.6,
+                  "name": "chat-long-output",
+                  "output_tokens": 256,
+                  "tps": {
+                    "max": 42.5357416538561,
+                    "mean": 42.14750653666098,
+                    "min": 41.892205464249095,
+                    "p50": 42.01457249187773,
+                    "p95": 42.48362473765826
+                  },
+                  "ttft_ms": {
+                    "max": 173.617,
+                    "mean": 162.67966666666666,
+                    "min": 157.029,
+                    "p50": 157.393,
+                    "p95": 171.9946
+                  }
+                },
+                {
+                  "category": "coding",
+                  "duration_ms": {
+                    "max": 1501.000241,
+                    "mean": 1443.9095326666666,
+                    "min": 1371.601546,
+                    "p50": 1459.126811,
+                    "p95": 1496.812898
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 34,
+                  "memory_peak_gb": 1.7,
+                  "name": "code-short",
+                  "output_tokens": 60,
+                  "tps": {
+                    "max": 48.29148741805539,
+                    "mean": 45.91717191773758,
+                    "min": 44.011921362433036,
+                    "p50": 45.448106972724325,
+                    "p95": 48.00714937352228
+                  },
+                  "ttft_ms": {
+                    "max": 123.299,
+                    "mean": 119.21866666666666,
+                    "min": 115.041,
+                    "p50": 119.316,
+                    "p95": 122.9007
+                  }
+                },
+                {
+                  "category": "coding",
+                  "duration_ms": {
+                    "max": 3625.93595,
+                    "mean": 3537.47004,
+                    "min": 3461.606684,
+                    "p50": 3524.867486,
+                    "p95": 3615.8291036
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 166,
+                  "memory_peak_gb": 1.7,
+                  "name": "code-explain",
+                  "output_tokens": 128,
+                  "tps": {
+                    "max": 44.131980826033455,
+                    "mean": 43.51798367630759,
+                    "min": 42.875297866083024,
+                    "p50": 43.546672336806296,
+                    "p95": 44.07344997711074
+                  },
+                  "ttft_ms": {
+                    "max": 625.216,
+                    "mean": 580.33,
+                    "min": 546.76,
+                    "p50": 569.014,
+                    "p95": 619.5958
+                  }
+                },
+                {
+                  "category": "coding",
+                  "duration_ms": {
+                    "max": 3797.090284,
+                    "mean": 3721.6227620000004,
+                    "min": 3645.418611,
+                    "p50": 3722.359391,
+                    "p95": 3789.6171947
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 330,
+                  "memory_peak_gb": 1.6,
+                  "name": "code-debug",
+                  "output_tokens": 100,
+                  "tps": {
+                    "max": 40.93235723305452,
+                    "mean": 39.868350011002484,
+                    "min": 39.07776475185619,
+                    "p50": 39.59492804809675,
+                    "p95": 40.79861431455874
+                  },
+                  "ttft_ms": {
+                    "max": 1219.792,
+                    "mean": 1194.244,
+                    "min": 1178.78,
+                    "p50": 1184.16,
+                    "p95": 1216.2288
+                  }
+                }
+              ]
+            }
+          ],
+          "timestamp": "2026-08-09T11:35:57Z"
+        }
+      ],
+      "timestamp": "2026-08-09T11:35:57Z"
+    },
+    "bench_returncode": 0,
+    "cli_version": "lemonade version 11.5.2",
+    "command": [
+      "bench",
+      "Qwen3-0.6B-GGUF",
+      "--backend",
+      "cpu",
+      "--runs",
+      "3",
+      "--json",
+      "--output",
+      "/tmp/lemonmetrics-bench.json"
+    ],
+    "models_available": [
+      "Qwen3-0.6B-GGUF"
+    ],
+    "server_healthy": true,
+    "server_root": "http://localhost:13305"
+  },
+  "lemonmetrics_version": "0.1.0",
+  "power": {
+    "available": false,
+    "sampler": "null",
+    "samples": 0
+  },
+  "schema_version": "1.0",
+  "wall": {
+    "duration_s": 109.236,
+    "finished_at": "2026-08-09T11:37:46+00:00",
+    "started_at": "2026-08-09T11:35:57+00:00"
+  }
+}

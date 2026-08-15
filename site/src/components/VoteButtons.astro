@@ -1,0 +1,26 @@
+---
+import { isFlagged } from "../lib/config";
+import type { VoteCounts } from "../lib/config";
+
+interface Props {
+  voteKey: string;
+  counts?: VoteCounts | null;
+  compact?: boolean;
+}
+const { voteKey, counts, compact = false } = Astro.props;
+const up = counts?.up ?? 0;
+const down = counts?.down ?? 0;
+const flagged = isFlagged(counts);
+---
+
+<span
+  class:list={["votes", { compact, flagged }]}
+  data-vote-key={voteKey}
+>
+  {!compact && <span class="votes-label">Votes</span>}
+  <button type="button" class="vote-btn" data-vote-dir="1" title="This result looks trustworthy">▲</button>
+  <span class="vote-count" data-vote-count="up">{up}</span>
+  <button type="button" class="vote-btn" data-vote-dir="-1" title="This result looks wrong or fake">▼</button>
+  <span class="vote-count" data-vote-count="down">{down}</span>
+  {flagged && <span class="pill flag" data-flag-badge>flagged</span>}
+</span>

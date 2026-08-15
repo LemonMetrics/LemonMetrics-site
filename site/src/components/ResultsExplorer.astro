@@ -1,0 +1,389 @@
+---
+import type { RunSummary } from "../data/load";
+import { voteKey } from "../data/load";
+import { loadStaticVotes } from "../data/votes";
+import { isFlagged } from "../lib/config";
+import type { VoteCounts } from "../lib/config";
+
+interface Props {
+  runs: RunSummary[];
+}
+const { runs } = Astro.props;
+const staticVotes = loadStaticVotes().votes;
+
+const rows = runs.map((run) => {
+  const key = voteKey(run);
+  const counts = staticVotes[key] ?? null;
+  return {
+    key,
+    deviceId: run.deviceId,
+    runId: run.runId,
+    cpuModel: run.cpuModel,
+    model: run.model,
+    backend: run.backend,
+    deviceOs: run.deviceOs,
+    powerAvailable: run.powerAvailable,
+    joulesPerToken: run.joulesPerToken,
+    meanTps: run.meanTps,
+    meanTtftMs: run.meanTtftMs,
+    peakWatts: run.peakWatts,
+    memoryPeakGb: run.memoryPeakGb,
+    tokensPerKwh: run.tokensPerKwh,
+    generatedAt: run.generatedAt,
+    votes: counts,
+    flagged: isFlagged(counts),
+  };
+});
+
+const devices = [...new Set(runs.map((r) => r.deviceId))].sort();
+const models = [...new Set(runs.map((r) => r.model))].sort();
+const backends = [...new Set(runs.map((r) => r.backend))].sort();
+
+const NUMERIC_FILTERS = [
+  { key: "joulesPerToken", label: "J/token", step: "0.0001" },
+  { key: "meanTps", label: "tok/s", step: "0.1" },
+  { key: "meanTtftMs", label: "TTFT ms", step: "1" },
+  { key: "peakWatts", label: "peak W", step: "1" },
+  { key: "memoryPeakGb", label: "mem GB", step: "0.1" },
+  { key: "tokensPerKwh", label: "tok/kWh", step: "100" },
+];
+---
+
+<div class="explorer">
+  <div class="filters" id="explorer-filters">
+    <label class="search">
+      Search
+      <input id="f-search" type="text" placeholder="device, model, backend, cpu, os" />
+    </label>
+    <label>
+      Device
+      <select id="f-device">
+        <option value="all">All</option>
+        {devices.map((d) => <option value={d}>{d}</option>)}
+      </select>
+    </label>
+    <label>
+      Model
+      <select id="f-model">
+        <option value="all">All</option>
+        {models.map((m) => <option value={m}>{m}</option>)}
+      </select>
+    </label>
+    <label>
+      Backend
+      <select id="f-backend">
+        <option value="all">All</option>
+        {backends.map((b) => <option value={b}>{b}</option>)}
+      </select>
+    </label>
+    <label>
+      Power
+      <select id="f-power">
+        <option value="all">All</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </label>
+    <button type="button" id="f-reset" class="btn">Reset</button>
+    <button type="button" id="f-advanced-toggle" class="btn" aria-expanded="false" aria-controls="advanced-filters">Advanced filters</button>
+    <div class="advanced-filters" id="advanced-filters" hidden>
+      <span class="advanced-label">Metrics — min / max per column</span>
+      {NUMERIC_FILTERS.map((n) => (
+        <label>
+          {n.label} min
+          <input id={`f-min-${n.key}`} type="number" step={n.step} placeholder="–" />
+        </label>
+      ))}
+      {NUMERIC_FILTERS.map((n) => (
+        <label>
+          {n.label} max
+          <input id={`f-max-${n.key}`} type="number" step={n.step} placeholder="–" />
+        </label>
+      ))}
+    </div>
+  </div>
+
+  <div class="compare-hint" id="compare-hint"></div>
+
+  <div class="table-wrap">
+    <table id="explorer-table">
+      <thead>
+        <tr>
+          <th class="chk"><input type="checkbox" id="check-all" title="Select all filtered" /></th>
+          <th data-key="cpuModel">Device</th>
+          <th data-key="model">Model</th>
+          <th data-key="backend">Backend</th>
+          <th data-key="powerAvailable">Power</th>
+          <th class="num" data-key="joulesPerToken">J/token</th>
+          <th class="num" data-key="meanTps">tok/s</th>
+          <th class="num" data-key="meanTtftMs">TTFT ms</th>
+          <th class="num" data-key="peakWatts">peak W</th>
+          <th class="num" data-key="memoryPeakGb">mem GB</th>
+          <th class="num" data-key="tokensPerKwh">tok/kWh</th>
+          <th>Votes</th>
+          <th class="num" data-key="generatedAt">when</th>
+        </tr>
+      </thead>
+      <tbody id="explorer-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="application/json" id="explorer-data" set:html={JSON.stringify(rows)}></script>
+
+<script>
+  import { bindVoteWidget, highlightMyVotes } from "../lib/votes";
+
+  interface Row {
+    key: string;
+    deviceId: string;
+    runId: string;
+    cpuModel: string;
+    model: string;
+    backend: string;
+    deviceOs: string;
+    powerAvailable: boolean;
+    joulesPerToken: number | null;
+    meanTps: number | null;
+    meanTtftMs: number | null;
+    peakWatts: number | null;
+    memoryPeakGb: number | null;
+    tokensPerKwh: number | null;
+    generatedAt: string;
+    votes: { up: number; down: number } | null;
+    flagged: boolean;
+  }
+
+  const rows: Row[] = JSON.parse(document.getElementById("explorer-data")!.textContent!);
+  const body = document.getElementById("explorer-body")!;
+  const hint = document.getElementById("compare-hint")!;
+  const search = document.getElementById("f-search") as HTMLInputElement;
+  const fDevice = document.getElementById("f-device") as HTMLSelectElement;
+  const fModel = document.getElementById("f-model") as HTMLSelectElement;
+  const fBackend = document.getElementById("f-backend") as HTMLSelectElement;
+  const fPower = document.getElementById("f-power") as HTMLSelectElement;
+  const resetBtn = document.getElementById("f-reset") as HTMLButtonElement;
+  const checkAll = document.getElementById("check-all") as HTMLInputElement;
+  const advToggle = document.getElementById("f-advanced-toggle") as HTMLButtonElement;
+  const advPanel = document.getElementById("advanced-filters") as HTMLElement;
+
+  const NUMERIC_KEYS = [
+    "joulesPerToken",
+    "meanTps",
+    "meanTtftMs",
+    "peakWatts",
+    "memoryPeakGb",
+    "tokensPerKwh",
+  ];
+
+  let sortKey = "joulesPerToken";
+  let sortDir: "asc" | "desc" = "asc";
+  const selected = new Set<string>(parseCompareParam());
+
+  function parseCompareParam(): string[] {
+    const p = new URLSearchParams(location.search);
+    return (p.get("compare") ?? "").split(",").filter(Boolean);
+  }
+
+  function enc(s: string): string {
+    return encodeURIComponent(s);
+  }
+
+  function shortCpu(cpu: string): string {
+    return cpu
+      .replace(/Intel\(R\)|AMD |Ryzen |Core\(TM\)|@ [\d.]+GHz|Processor/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function backendClass(backend: string): string {
+    const b = backend.toLowerCase();
+    if (b.includes("npu")) return "tag-npu";
+    if (b.includes("vulkan")) return "tag-vulkan";
+    return "tag-cpu";
+  }
+
+  function fmt(v: number | null, digits: number): string {
+    return v == null ? "—" : v.toFixed(digits);
+  }
+
+  function num(el: HTMLInputElement): number | null {
+    const v = parseFloat(el.value);
+    return Number.isFinite(v) ? v : null;
+  }
+
+  function voteMarkup(key: string, votes: { up: number; down: number } | null, flagged: boolean): string {
+    const up = votes?.up ?? 0;
+    const down = votes?.down ?? 0;
+    return `<span class="votes" data-vote-key="${key}"${flagged ? ' flagged' : ''}>
+      <button type="button" class="vote-btn" data-vote-dir="1" title="This result looks trustworthy">▲</button>
+      <span class="vote-count" data-vote-count="up">${up}</span>
+      <button type="button" class="vote-btn" data-vote-dir="-1" title="This result looks wrong or fake">▼</button>
+      <span class="vote-count" data-vote-count="down">${down}</span>
+      ${flagged ? '<span class="pill flag" data-flag-badge>flagged</span>' : ""}
+    </span>`;
+  }
+
+  function filtered(): Row[] {
+    const q = search.value.trim().toLowerCase();
+    const dev = fDevice.value;
+    const mod = fModel.value;
+    const bke = fBackend.value;
+    const pow = fPower.value;
+    const bounds = NUMERIC_KEYS.map((key) => ({
+      key,
+      min: num(document.getElementById(`f-min-${key}`) as HTMLInputElement),
+      max: num(document.getElementById(`f-max-${key}`) as HTMLInputElement),
+    }));
+
+    return rows.filter((r) => {
+      if (q) {
+        const hay = `${r.deviceId} ${r.cpuModel} ${r.model} ${r.backend} ${r.deviceOs}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (dev !== "all" && r.deviceId !== dev) return false;
+      if (mod !== "all" && r.model !== mod) return false;
+      if (bke !== "all" && r.backend !== bke) return false;
+      if (pow === "yes" && !r.powerAvailable) return false;
+      if (pow === "no" && r.powerAvailable) return false;
+      for (const b of bounds) {
+        if (b.min == null && b.max == null) continue;
+        const v = (r as any)[b.key] as number | null;
+        if (v == null) return false;
+        if (b.min != null && v < b.min) return false;
+        if (b.max != null && v > b.max) return false;
+      }
+      return true;
+    });
+  }
+
+  function render() {
+    let list = filtered();
+    const dir = sortDir === "asc" ? 1 : -1;
+    list = list.slice().sort((a, b) => {
+      const av = (a as any)[sortKey];
+      const bv = (b as any)[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
+    });
+
+    if (list.length === 0) {
+      body.innerHTML = `<tr><td colspan="13" class="empty">No runs match these filters.</td></tr>`;
+    } else {
+      body.innerHTML = list
+        .map((r) => {
+          const link = `/runs/${enc(r.deviceId)}/${enc(r.runId)}/`;
+          return `<tr class="${r.flagged ? "row-flagged" : ""}">
+            <td class="chk"><input type="checkbox" class="cmp" data-key="${r.key}"${selected.has(r.key) ? " checked" : ""} /></td>
+            <td><a href="${link}">${shortCpu(r.cpuModel)}</a><div class="sub">${r.deviceId}</div></td>
+            <td>${r.model}</td>
+            <td><span class="pill ${backendClass(r.backend)}">${r.backend}</span></td>
+            <td>${r.powerAvailable ? '<span class="pill pwr">yes</span>' : '<span class="pill pwr-off">no</span>'}</td>
+            <td class="num">${fmt(r.joulesPerToken, 4)}</td>
+            <td class="num">${fmt(r.meanTps, 1)}</td>
+            <td class="num">${fmt(r.meanTtftMs, 1)}</td>
+            <td class="num">${fmt(r.peakWatts, 1)}</td>
+            <td class="num">${fmt(r.memoryPeakGb, 1)}</td>
+            <td class="num">${fmt(r.tokensPerKwh, 0)}</td>
+            <td>${voteMarkup(r.key, r.votes, r.flagged)}</td>
+            <td class="num">${r.generatedAt ? r.generatedAt.slice(0, 10) : "—"}</td>
+          </tr>`;
+        })
+        .join("");
+      highlightMyVotes();
+    }
+    updateHint(list.length);
+  }
+
+  function updateSortMarkers() {
+    document.querySelectorAll("th[data-key]").forEach((th) => {
+      th.classList.toggle("sort-asc", th.dataset.key === sortKey && sortDir === "asc");
+      th.classList.toggle("sort-desc", th.dataset.key === sortKey && sortDir === "desc");
+    });
+  }
+
+  function updateHint(count: number) {
+    if (selected.size >= 2) {
+      hint.innerHTML = `Comparing <strong>${selected.size}</strong> runs. <button type="button" id="clear-compare" class="btn">Clear</button>`;
+      const btn = document.getElementById("clear-compare");
+      if (btn) btn.addEventListener("click", clearCompare);
+    } else {
+      hint.innerHTML = `${count} runs. Select 2+ with the checkboxes to compare side by side.`;
+    }
+  }
+
+  function dispatchCompare() {
+    const url = new URL(location.href);
+    if (selected.size > 0) url.searchParams.set("compare", [...selected].join(","));
+    else url.searchParams.delete("compare");
+    history.replaceState(null, "", url.toString());
+    window.dispatchEvent(new CustomEvent("lm:compare", { detail: [...selected] }));
+    updateHint(0);
+  }
+
+  function clearCompare() {
+    selected.clear();
+    body.querySelectorAll<HTMLInputElement>(".cmp").forEach((cb) => (cb.checked = false));
+    checkAll.checked = false;
+    dispatchCompare();
+    render();
+  }
+
+  document.addEventListener("change", (e) => {
+    const cb = (e.target as HTMLElement).closest<HTMLInputElement>("input.cmp");
+    if (!cb) return;
+    const key = cb.dataset.key!;
+    if (cb.checked) selected.add(key);
+    else selected.delete(key);
+    dispatchCompare();
+  });
+
+  checkAll.addEventListener("change", () => {
+    body.querySelectorAll<HTMLInputElement>(".cmp").forEach((cb) => {
+      cb.checked = checkAll.checked;
+      if (checkAll.checked) selected.add(cb.dataset.key!);
+      else selected.delete(cb.dataset.key!);
+    });
+    dispatchCompare();
+  });
+
+  advToggle.addEventListener("click", () => {
+    const open = advPanel.hidden;
+    advPanel.hidden = !open;
+    advToggle.setAttribute("aria-expanded", String(open));
+    advToggle.textContent = open ? "Hide advanced filters" : "Advanced filters";
+  });
+
+  ["input", "change"].forEach((evt) => {
+    document.getElementById("explorer-filters")!.addEventListener(evt, render);
+  });
+  resetBtn.addEventListener("click", () => {
+    search.value = "";
+    fDevice.value = "all";
+    fModel.value = "all";
+    fBackend.value = "all";
+    fPower.value = "all";
+    NUMERIC_KEYS.forEach((key) => {
+      (document.getElementById(`f-min-${key}`) as HTMLInputElement).value = "";
+      (document.getElementById(`f-max-${key}`) as HTMLInputElement).value = "";
+    });
+    render();
+  });
+
+  document.querySelectorAll("th[data-key]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = (th as HTMLElement).dataset.key!;
+      if (key === sortKey) sortDir = sortDir === "asc" ? "desc" : "asc";
+      else {
+        sortKey = key;
+        sortDir = key === "generatedAt" ? "desc" : "asc";
+      }
+      render();
+    });
+  });
+
+  bindVoteWidget();
+  render();
+</script>

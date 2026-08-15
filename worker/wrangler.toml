@@ -1,0 +1,11 @@
+name = "lemonmetrics-votes"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "VOTES"
+id = "b4a305dec4c948a1a85d3e79344d74f1"
+
+[vars]
+FLAG_THRESHOLD = "10"

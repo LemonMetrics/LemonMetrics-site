@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ResultsExplorer from "../components/ResultsExplorer.astro";
+import Compare from "../components/Compare.astro";
+import { loadRuns } from "../data/load";
+
+const runs = loadRuns();
+---
+
+  <BaseLayout
+  title="All results — Lemon Metrics"
+  description="Filter, sort, compare, and vote on every submitted Lemon Metrics benchmark run."
+  currentPage="results"
+>
+  <div class="hero" style="padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+    <h1>All results</h1>
+    <p class="subtitle">
+      Every submitted run, filterable by any metric. Select 2+ with the checkboxes to
+      compare devices, models, and backends side by side. Up-vote runs you trust and
+      down-vote ones that look wrong — runs flagged at &minus;10 net votes are hidden
+      from the leaderboard pending re-verification. One vote per result per person.
+    </p>
+  </div>
+  <Compare runs={runs} />
+  <ResultsExplorer runs={runs} />
+</BaseLayout>

@@ -1,0 +1,11 @@
+.DS_Store
+site/node_modules/
+site/dist/
+site/.astro/
+worker/node_modules/
+worker/.wrangler/
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

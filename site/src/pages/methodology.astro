@@ -1,0 +1,80 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Methodology — Lemon Metrics"
+  description="How Lemon Metrics measures energy per token."
+  currentPage="methodology"
+>
+  <section class="hero" style="padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+    <h1>Methodology</h1>
+    <p class="subtitle">
+      Lemon Metrics wraps Lemonade&rsquo;s built-in <code>lemonade bench --json</code> with a
+      power-sampling layer. Performance metrics (tokens/sec, TTFT, memory) come from
+      Lemonade itself; we add wall-clock watts sampled at 1&ndash;2 Hz for the entire run.
+    </p>
+  </section>
+
+  <h2>What is recorded per run</h2>
+  <ul class="plain">
+    <li><strong>Machine fingerprint</strong> &mdash; CPU, cores, RAM, GPU/NPU list, OS, stable <code>device_id</code>.</li>
+    <li><strong>Ambient snapshot</strong> &mdash; power source (AC vs battery), battery %, CPU governor, thermals.</li>
+    <li><strong>Benchmark</strong> &mdash; per-scenario TPS, TTFT, duration percentiles, memory peak from <code>lemonade bench --json</code>.</li>
+    <li><strong>Power samples</strong> &mdash; raw (timestamp, watts) as JSONL.</li>
+  </ul>
+
+  <h2>Power sources</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Sampler</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Linux (AMD Ryzen AI, Radeon iGPU)</td><td><code>hwmon</code></td><td>sysfs <code>power1_average</code>, summed</td></tr>
+        <tr><td>Linux (Intel)</td><td><code>rapl</code></td><td><code>intel-rapl</code> energy_uj, differentiated</td></tr>
+        <tr><td>Linux (AMD dGPU)</td><td><code>rocm-smi</code></td><td><code>rocm-smi --showpower --json</code></td></tr>
+        <tr><td>macOS</td><td><code>powermetrics</code></td><td>requires passwordless <code>sudo -n</code></td></tr>
+        <tr><td>Windows</td><td><code>null</code></td><td>no reliable real-time source yet; energy marked unavailable</td></tr>
+        <tr><td>fallback</td><td><code>null</code></td><td>marks <code>power_available: false</code>; run still completes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Windows power &mdash; call for help</h2>
+  <p>
+    No reliable real-time wattage source exists on Windows today
+    (<code>Win32_PowerMeter</code> is rarely populated; <code>powercfg /energy</code> is a
+    60&nbsp;s report, not a per-sample stream). Windows runs record full performance metrics
+    with <code>power_available: false</code>.
+  </p>
+  <p>
+    Know a reproducible way to sample watts on Windows? Open an
+    <a href="https://github.com/lemonmetrics/lemonmetrics/issues">issue</a> or PR &mdash; we want
+    a first-class <code>windows</code> sampler.
+  </p>
+
+  <h2>Energy metrics</h2>
+  <p>
+    With <em>P</em> the mean sampled power and <em>T</em> the wall duration:
+  </p>
+  <ul class="plain">
+    <li><strong>J/token</strong> = P&times;T / total tokens (input + output)</li>
+    <li><strong>J/output token</strong> = P&times;T / output tokens &mdash; the cost of generating</li>
+    <li><strong>tokens/kWh</strong> = 3.6e6 &times; total tokens / (P&times;T)</li>
+  </ul>
+  <p>
+    Per-scenario energy is <code>P &times; scenario mean duration</code> and is labelled an
+    <em>estimate</em>, because the bench reloads models between scenarios; only wall-level
+    energy is authoritative.
+  </p>
+
+  <h2>Honesty rules</h2>
+  <ul class="plain">
+    <li>Never invent power data &mdash; missing source means <code>power_available: false</code>.</li>
+    <li>Battery runs are flagged so readers can discard them.</li>
+    <li>Raw samples are published alongside every summary so anyone can recompute.</li>
+  </ul>
+
+  <p class="muted">
+    Full details: <a href="https://github.com/lemonmetrics/lemonmetrics/blob/main/docs/methodology.md">methodology on GitHub</a>.
+  </p>
+</BaseLayout>

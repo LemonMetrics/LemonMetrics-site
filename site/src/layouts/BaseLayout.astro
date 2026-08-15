@@ -1,0 +1,94 @@
+---
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/dm-sans";
+import "@fontsource-variable/jetbrains-mono";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  currentPage?: "leaderboard" | "results" | "methodology";
+}
+const { title, description, currentPage } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#05070b" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" as="image" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 128 128">
+            <defs>
+              <path id="nav-lemon-body" d="M5.71 68.44C7.7 44.1 22.11 22.09 45.26 13.38c6.98-2.63 14.16-4.94 21.62-5.71c8.06-.84 15.83.66 23.84 1.16c5.26.33 11.62.41 16.85.14c10.31-.54 22.49 13.43 19.13 24.19c-3.02 9.65-2.14 15.16-3.53 27.16c-2.82 24.34-23.74 50.29-51 56.93c-7.87 1.92-14.1 3.59-22.2 3.29c-7.55-.29-16.5-2.41-23.97-3.28c-3.29-.39-6.61.17-9.9-.33c-4.36-.66-7.74-3.21-10.48-6.7c-2.85-3.64-4.85-8.32-4.86-13.05c0-4.6 2.02-8.88 2.66-13.39.81-5.79 1.81-9.52 2.29-15.35"/>
+              <clipPath id="nav-lemon-clip"><use href="#nav-lemon-body"/></clipPath>
+            </defs>
+            <use href="#nav-lemon-body" fill="#fcc21b"/>
+            <path fill="#f79329" d="M123.97 50.91s-3.57 27.45-35.4 46.11c-32.04 18.79-49.75 11.44-60.69 12.5c-10.93 1.06-13.45 3.7-23.22-.61c0 0 3.53 10.78 12.35 12.54s47.97 7.76 61.73 3.17s40.56-17.64 45.86-46.21c4.36-23.58-.63-27.5-.63-27.5" clip-path="url(#nav-lemon-clip)"/>
+            <path fill="#fff" d="M35.47 36.33c-2.65 2.14-5.06 5-6.18 6.33c-3.48 4.17-5.85 9.03-7.45 14.22-1.63 5.34-5.31 19.14 2.12 22.02c6.29 2.44 8.76-4.52 10.22-9.15c2.62-8.45 3.38-16.98 7.61-24.9c1.33-2.51 5.27-10.48-.11-11.2c-2.24-.31-4.57 1.35-6.21 2.68"/>
+          </svg>
+        </span>
+        <span class="brand-name">Lemon Metrics</span>
+      </a>
+      <nav>
+        <a href="/" aria-current={currentPage === "leaderboard" ? "page" : undefined}>Leaderboard</a>
+        <a href="/results/" aria-current={currentPage === "results" ? "page" : undefined}>All results</a>
+        <a href="/methodology/" aria-current={currentPage === "methodology" ? "page" : undefined}>Methodology</a>
+        <a class="nav-cta" href="https://github.com/lemonmetrics/lemonmetrics" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.41-5.26 5.69.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.8.55A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/>
+          </svg>
+          GitHub
+        </a>
+      </nav>
+    </header>
+    <main class="container">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 128 128">
+                <defs>
+                  <path id="foot-lemon-body" d="M5.71 68.44C7.7 44.1 22.11 22.09 45.26 13.38c6.98-2.63 14.16-4.94 21.62-5.71c8.06-.84 15.83.66 23.84 1.16c5.26.33 11.62.41 16.85.14c10.31-.54 22.49 13.43 19.13 24.19c-3.02 9.65-2.14 15.16-3.53 27.16c-2.82 24.34-23.74 50.29-51 56.93c-7.87 1.92-14.1 3.59-22.2 3.29c-7.55-.29-16.5-2.41-23.97-3.28c-3.29-.39-6.61.17-9.9-.33c-4.36-.66-7.74-3.21-10.48-6.7c-2.85-3.64-4.85-8.32-4.86-13.05c0-4.6 2.02-8.88 2.66-13.39.81-5.79 1.81-9.52 2.29-15.35"/>
+                  <clipPath id="foot-lemon-clip"><use href="#foot-lemon-body"/></clipPath>
+                </defs>
+                <use href="#foot-lemon-body" fill="#fcc21b"/>
+                <path fill="#f79329" d="M123.97 50.91s-3.57 27.45-35.4 46.11c-32.04 18.79-49.75 11.44-60.69 12.5c-10.93 1.06-13.45 3.7-23.22-.61c0 0 3.53 10.78 12.35 12.54s47.97 7.76 61.73 3.17s40.56-17.64 45.86-46.21c4.36-23.58-.63-27.5-.63-27.5" clip-path="url(#foot-lemon-clip)"/>
+                <path fill="#fff" d="M35.47 36.33c-2.65 2.14-5.06 5-6.18 6.33c-3.48 4.17-5.85 9.03-7.45 14.22-1.63 5.34-5.31 19.14 2.12 22.02c6.29 2.44 8.76-4.52 10.22-9.15c2.62-8.45 3.38-16.98 7.61-24.9c1.33-2.51 5.27-10.48-.11-11.2c-2.24-.31-4.57 1.35-6.21 2.68"/>
+              </svg>
+            </span>
+            Lemon Metrics
+          </div>
+          <p class="footer-tagline">
+            Energy per token for Lemonade local AI servers — measured, published, and
+            open to verification.
+          </p>
+        </div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="/">Leaderboard</a>
+          <a href="/results/">All results</a>
+          <a href="/methodology/">Methodology</a>
+          <a href="https://github.com/lemonmetrics/lemonmetrics-site" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+      </div>
+      <p class="footer-bottom">
+        Open source, MIT licensed. Raw power samples published with every run.
+        &copy; 2026 <a href="https://austincasteel.com" target="_blank" rel="noopener">Austin Casteel</a> &amp; Lemon Metrics contributors.
+        <a href="https://buymeacoffee.com/austincasteel" target="_blank" rel="noopener">Buy me a coffee</a>.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,57 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci
+      - name: Sync live votes snapshot
+        if: env.PUBLIC_VOTES_API != ''
+        env:
+          PUBLIC_VOTES_API: ${{ secrets.PUBLIC_VOTES_API }}
+        run: |
+          curl -fsS "$PUBLIC_VOTES_API/votes" -o /tmp/votes.json
+          python3 - <<'EOF'
+          import json
+          with open("/tmp/votes.json") as f:
+              data = json.load(f)
+          out = {"updatedAt": data.get("updatedAt", ""), "votes": data.get("votes", {})}
+          with open("votes.json", "w") as f:
+              json.dump(out, f, indent=2)
+              f.write("\n")
+          EOF
+      - name: Build static site
+        working-directory: site
+        env:
+          PUBLIC_VOTES_API: ${{ secrets.PUBLIC_VOTES_API }}
+        run: npm run build
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,144 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Leaderboard from "../components/Leaderboard.astro";
+import { loadRuns, bestPerCombo } from "../data/load";
+
+const runs = loadRuns();
+const bestOf = bestPerCombo(runs);
+const bestJpt = bestOf.find((r) => r.joulesPerToken != null);
+const bestTok = bestOf.filter((r) => r.meanTps != null).sort((a, b) => b.meanTps! - a.meanTps!)[0];
+const totalTokens = runs.reduce((acc, r) => acc + (r.totalTokens ?? 0), 0);
+const powered = runs.filter((r) => r.powerAvailable).length;
+---
+
+<BaseLayout
+  title="Lemon Metrics — energy per token for Lemonade local AI"
+  description="Open benchmark of energy efficiency (J/token) for Lemonade local AI servers across CPU, iGPU, and NPU."
+  currentPage="leaderboard"
+>
+  <section class="hero">
+    <span class="eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7l7-4z"/>
+      </svg>
+      Open source &middot; MIT licensed
+    </span>
+    <h1>
+      Energy per token, <span class="grad">for local AI.</span>
+    </h1>
+    <p class="subtitle">
+      Lemonade servers already report tokens/sec and latency. Lemon Metrics adds the
+      missing layer: how many <strong>joules</strong> each token costs on your CPU,
+      iGPU, or NPU — so the battery fight between an NPU and an iGPU on the same die
+      becomes explicit.
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="/results/">Explore all results</a>
+      <a class="btn" href="/methodology/">Read the methodology</a>
+    </div>
+    <div class="headline">
+      <div class="metric">
+        <div class="label">Runs submitted</div>
+        <div class="value" data-count={runs.length} data-dec="0">{runs.length}</div>
+      </div>
+      <div class="metric">
+        <div class="label">Best J/token</div>
+        <div class="value" data-count={bestJpt ? bestJpt.joulesPerToken! : 0} data-dec="4">{bestJpt ? bestJpt.joulesPerToken!.toFixed(4) : "—"}</div>
+      </div>
+      <div class="metric">
+        <div class="label">Best tok/s</div>
+        <div class="value" data-count={bestTok ? bestTok.meanTps! : 0} data-dec="1">{bestTok ? bestTok.meanTps!.toFixed(1) : "—"}</div>
+      </div>
+      <div class="metric">
+        <div class="label">Tokens benchmarked</div>
+        <div class="value" data-count={totalTokens} data-dec="0" data-comma="1">{totalTokens.toLocaleString()}</div>
+      </div>
+    </div>
+  </section>
+
+  <h2>How it works</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>
+        </svg>
+      </span>
+      <h3>Measure energy</h3>
+      <p>
+        A power-sampling layer wraps <code>lemonade bench</code>, recording wall-clock
+        watts at 1–2 Hz from hwmon, RAPL, rocm-smi, or powermetrics.
+      </p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 3v18M18 3v18M3 6h18M3 18h18"/>
+        </svg>
+      </span>
+      <h3>Compare hardware</h3>
+      <p>
+        One leaderboard per device × model × backend. Sort by any metric and compare
+        CPU, iGPU, and NPU runs side by side.
+      </p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7l7-4z"/>
+        </svg>
+      </span>
+      <h3>Vote for truth</h3>
+      <p>
+        Every result is community-verified. Up-vote runs you trust, down-vote anything
+        that looks wrong — flagged runs are hidden until re-verified.
+      </p>
+    </div>
+  </div>
+
+  <h2>Leaderboard</h2>
+  <p class="muted">
+    One row per device × model × backend. Best = lowest J/token; perf-only runs
+    fill the other columns. Sort by any column; each row links to its full report.
+    <a href="/results/">Explore and compare all results →</a>
+  </p>
+  <Leaderboard runs={runs} />
+
+  <section class="cta-band">
+    <h2>Why joules?</h2>
+    <p>
+      With rising costs of energy and laptops with battery duration, the real competition is between the CPU, integrated GPU, and NPU
+      sitting on the same die. An NPU that runs 30% slower but draws half the power
+      which means it wins the battery fight — but &ldquo;best tok/s&rdquo; alone hides it in pursuit for speed. J/token
+      makes that tradeoff explicit, and with Lemon Metric the raw power samples are published with every run.
+    </p>
+    <div class="hero-actions" style="justify-content:center; margin-bottom:0;">
+      <a class="btn primary" href="/results/">Compare results</a>
+      <a class="btn" href="https://github.com/lemonmetrics/lemonmetrics-site" target="_blank" rel="noreferrer">Contribute a run</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const els = document.querySelectorAll<HTMLElement>(".metric .value[data-count]");
+  if (!reduced && els.length > 0) {
+    const dur = 900;
+    for (const el of els) {
+      const target = parseFloat(el.dataset.count!);
+      const dec = parseInt(el.dataset.dec ?? "0", 10);
+      const comma = el.dataset.comma === "1";
+      const start = performance.now();
+      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+      function tick(now: number) {
+        const p = Math.min((now - start) / dur, 1);
+        const v = target * ease(p);
+        let text = v.toFixed(dec);
+        if (comma) text = Number(text).toLocaleString(undefined, { maximumFractionDigits: dec });
+        el.textContent = text;
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+  }
+</script>

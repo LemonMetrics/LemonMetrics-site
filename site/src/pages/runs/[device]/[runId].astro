@@ -1,0 +1,137 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import VoteButtons from "../../../components/VoteButtons.astro";
+import { loadRuns, voteKey } from "../../../data/load";
+import { loadStaticVotes } from "../../../data/votes";
+
+export async function getStaticPaths() {
+  const runs = loadRuns();
+  return runs.map((run) => ({
+    params: { device: run.deviceId, runId: run.runId },
+    props: { run },
+  }));
+}
+
+const { run } = Astro.props;
+const report: any = run.report;
+const env = report?.environment ?? {};
+const power = report?.power ?? {};
+const device = report?.device ?? {};
+const cpu = device?.cpu ?? {};
+const key = voteKey(run);
+const staticVotes = loadStaticVotes().votes;
+const voteCounts = staticVotes[key] ?? null;
+
+function fmt(v: number | null, digits = 3): string {
+  return v == null ? "—" : v.toFixed(digits);
+}
+const gh = "https://github.com/lemonmetrics/lemonmetrics-site/tree/main/data/results";
+const ghPath = `${gh}/${encodeURIComponent(run.deviceId)}/${encodeURIComponent(run.runId)}`;
+---
+
+<BaseLayout title={`${run.model} on ${run.backend} — Lemon Metrics`}>
+  <p class="breadcrumb">
+    <a href="/">Leaderboard</a><span class="sep">/</span><a href="/results/">All results</a><span class="sep">/</span>{run.model}
+  </p>
+  <h1>{run.model}</h1>
+  <p class="muted" style="margin-top: 0.25rem;">
+    <span class="pill">{run.backend}</span> &nbsp;
+    {run.deviceOs} &middot; {run.cpuModel} &middot; run {run.generatedAt.slice(0, 10)}
+  </p>
+
+  <div class="vote-block">
+    <VoteButtons voteKey={key} counts={voteCounts} />
+    <span class="muted note">
+      See something wrong? Down-vote it. Runs flagged at &minus;10 net votes are
+      hidden from the leaderboard until re-verified.
+    </span>
+  </div>
+
+  <div class="headline" style="margin: 1.5rem 0">
+    <div class="metric">
+      <div class="label">J/token</div>
+      <div class="value">{fmt(run.joulesPerToken, 4)}</div>
+    </div>
+    <div class="metric">
+      <div class="label">tok/s (mean)</div>
+      <div class="value">{fmt(run.meanTps, 1)}</div>
+    </div>
+    <div class="metric">
+      <div class="label">TTFT (mean)</div>
+      <div class="value">{fmt(run.meanTtftMs, 1)} <span class="unit">ms</span></div>
+    </div>
+    <div class="metric">
+      <div class="label">peak power</div>
+      <div class="value">{power.available ? fmt(run.peakWatts, 1) : "n/a"}</div>
+    </div>
+    <div class="metric">
+      <div class="label">memory peak</div>
+      <div class="value">{fmt(run.memoryPeakGb, 1)} <span class="unit">GB</span></div>
+    </div>
+  </div>
+
+  <h2>Power &amp; efficiency</h2>
+  <div class="card">
+    <table class="detail">
+      <tbody>
+        <tr><td>Power available</td><td>{power.available ? "yes" : "no"}</td></tr>
+        <tr><td>Sampler</td><td><code>{run.sampler}</code></td></tr>
+        <tr><td>Avg watts</td><td>{fmt(run.avgWatts)}</td></tr>
+        <tr><td>Peak watts</td><td>{fmt(run.peakWatts)}</td></tr>
+        <tr><td>Wall energy</td><td>{fmt(run.wallEnergyJoules)} J</td></tr>
+        <tr><td>J/output token</td><td>{fmt(run.joulesPerOutputToken, 4)}</td></tr>
+        <tr><td>tokens/kWh</td><td>{fmt(run.tokensPerKwh, 0)}</td></tr>
+        <tr><td>Total tokens</td><td>{fmt(run.totalTokens, 0)}</td></tr>
+        <tr><td>Power source</td><td>{env.power_source ?? "unknown"}</td></tr>
+        <tr><td>Battery</td><td>{env.battery_percent != null ? `${env.battery_percent}%` : "n/a"}</td></tr>
+        <tr><td>CPU governor</td><td>{env.cpu_governor ?? "n/a"}</td></tr>
+        <tr><td>Thermal</td><td>{env.thermal_celsius != null ? `${env.thermal_celsius} C` : "n/a"}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Scenarios</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th class="num">category</th>
+          <th class="num">in tok</th>
+          <th class="num">out tok</th>
+          <th class="num">tok/s</th>
+          <th class="num">TTFT ms</th>
+          <th class="num">est. J/tok</th>
+        </tr>
+      </thead>
+      <tbody>
+        {run.scenarios.map((s) => (
+          <tr>
+            <td>{s.name}</td>
+            <td class="num">{s.category}</td>
+            <td class="num">{s.inputTokens}</td>
+            <td class="num">{s.outputTokens}</td>
+            <td class="num">{fmt(s.tps, 1)}</td>
+            <td class="num">{fmt(s.ttftMs, 1)}</td>
+            <td class="num">{fmt(s.estimatedJoulesPerToken, 4)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Command</h2>
+  <pre class="code">{run.command || "n/a"}</pre>
+
+  <p class="muted">
+    Raw files: <a href={ghPath} target="_blank" rel="noreferrer">report.json</a>,
+    <a href={`${ghPath}/bench.json`} target="_blank" rel="noreferrer">bench.json</a>,
+    <a href={`${ghPath}/power.jsonl`} target="_blank" rel="noreferrer">power.jsonl</a>,
+    <a href={`${ghPath}/summary.md`} target="_blank" rel="noreferrer">summary.md</a>.
+  </p>
+</BaseLayout>
+
+<script>
+  import { bindVoteWidget } from "../../../lib/votes";
+  bindVoteWidget();
+</script>

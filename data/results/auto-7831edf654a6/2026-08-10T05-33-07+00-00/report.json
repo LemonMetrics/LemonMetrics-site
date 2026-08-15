@@ -1,0 +1,717 @@
+{
+  "device": {
+    "cpu": {
+      "logical_cores": 12,
+      "model": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz",
+      "physical_cores": 6
+    },
+    "device_id": "auto-7831edf654a6",
+    "fingerprint": "7831edf654a6",
+    "gpu": [
+      "Intel UHD Graphics 630",
+      "AMD Radeon Pro 5300M"
+    ],
+    "hostname": "Austins-MacBook-Pro-2.local",
+    "machine": "x86_64",
+    "memory_gb": 32.0,
+    "npu": [],
+    "os": "Darwin",
+    "os_release": "25.5.0"
+  },
+  "efficiency": {
+    "available": true,
+    "avg_watts": 25.392,
+    "baseline_watts": 6.934,
+    "by_scenario": [
+      {
+        "backend": "cpu",
+        "category": "chat",
+        "duration_s": 0.535,
+        "estimated_energy_joules": 13.583,
+        "estimated_joules_per_output_token": 0.6792,
+        "estimated_joules_per_token": 0.289,
+        "input_tokens": 27,
+        "memory_peak_gb": 1.7,
+        "name": "chat-short",
+        "output_tokens": 20,
+        "recipe": "llamacpp",
+        "tps": 48.27548265151787,
+        "ttft_ms": 103.58733333333333
+      },
+      {
+        "backend": "cpu",
+        "category": "chat",
+        "duration_s": 6.398,
+        "estimated_energy_joules": 162.465,
+        "estimated_joules_per_output_token": 0.6346,
+        "estimated_joules_per_token": 0.5415,
+        "input_tokens": 44,
+        "memory_peak_gb": 1.7,
+        "name": "chat-long-output",
+        "output_tokens": 256,
+        "recipe": "llamacpp",
+        "tps": 41.31093671619772,
+        "ttft_ms": 186.04566666666665
+      },
+      {
+        "backend": "cpu",
+        "category": "coding",
+        "duration_s": 1.459,
+        "estimated_energy_joules": 37.035,
+        "estimated_joules_per_output_token": 0.6172,
+        "estimated_joules_per_token": 0.394,
+        "input_tokens": 34,
+        "memory_peak_gb": 1.7,
+        "name": "code-short",
+        "output_tokens": 60,
+        "recipe": "llamacpp",
+        "tps": 46.79742202186384,
+        "ttft_ms": 159.58033333333333
+      },
+      {
+        "backend": "cpu",
+        "category": "coding",
+        "duration_s": 3.797,
+        "estimated_energy_joules": 96.406,
+        "estimated_joules_per_output_token": 0.7532,
+        "estimated_joules_per_token": 0.3279,
+        "input_tokens": 166,
+        "memory_peak_gb": 1.7,
+        "name": "code-explain",
+        "output_tokens": 128,
+        "recipe": "llamacpp",
+        "tps": 40.3249130981145,
+        "ttft_ms": 608.4926666666667
+      },
+      {
+        "backend": "cpu",
+        "category": "coding",
+        "duration_s": 3.903,
+        "estimated_energy_joules": 99.095,
+        "estimated_joules_per_output_token": 0.991,
+        "estimated_joules_per_token": 0.2305,
+        "input_tokens": 330,
+        "memory_peak_gb": 1.7,
+        "name": "code-debug",
+        "output_tokens": 100,
+        "recipe": "llamacpp",
+        "tps": 38.043950917890676,
+        "ttft_ms": 1253.0423333333333
+      }
+    ],
+    "incremental_energy_joules": 2042.968,
+    "incremental_joules_per_output_token": 3.6223,
+    "incremental_joules_per_token": 1.7536,
+    "incremental_tokens_per_kwh": 2052895.23,
+    "incremental_watts": 18.458,
+    "joules_per_output_token": 4.983,
+    "joules_per_token": 2.4124,
+    "note": "per-scenario energy is avg power x scenario duration and excludes model-load overhead; incremental metrics subtract the idle baseline (6.934 W) and are estimates",
+    "peak_watts": 70.97,
+    "tokens_per_kwh": 1492294.43,
+    "total_input_tokens": 601,
+    "total_output_tokens": 564,
+    "total_tokens": 1165,
+    "wall_energy_joules": 2810.437
+  },
+  "environment": {
+    "battery_percent": 79,
+    "cpu_governor": null,
+    "note": "measured alongside bench run",
+    "power_source": "ac",
+    "recorded_at": "2026-08-10T05:35:00+00:00",
+    "thermal_celsius": null
+  },
+  "generated_at": "2026-08-10T05:35:00+00:00",
+  "lemonade": {
+    "api_base": "http://localhost:13305/api/v1",
+    "bench_output": {
+      "hardware": {
+        "backends": {
+          "llamacpp/cpu": "b10241"
+        },
+        "cpu": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz",
+        "gpu": [],
+        "os": "linux",
+        "ram_gb": 15.69
+      },
+      "models": [
+        {
+          "config": {
+            "measurement_runs": 3,
+            "memory_tracking": true,
+            "warmup_runs": 0
+          },
+          "model": "Qwen3-0.6B-GGUF",
+          "results": [
+            {
+              "backend": "cpu",
+              "backend_args": "",
+              "ctx_size": 4096,
+              "recipe": "llamacpp",
+              "scenarios": [
+                {
+                  "category": "chat",
+                  "duration_ms": {
+                    "max": 581.527599,
+                    "mean": 534.9361446666667,
+                    "min": 497.730201,
+                    "p50": 525.550634,
+                    "p95": 575.9299024999999
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 27,
+                  "memory_peak_gb": 1.7,
+                  "name": "chat-short",
+                  "output_tokens": 20,
+                  "tps": {
+                    "max": 51.85215912390592,
+                    "mean": 48.27548265151787,
+                    "min": 44.23457595629624,
+                    "p50": 48.739712874351454,
+                    "p95": 51.54091449895047
+                  },
+                  "ttft_ms": {
+                    "max": 114.284,
+                    "mean": 103.58733333333333,
+                    "min": 97.652,
+                    "p50": 98.826,
+                    "p95": 112.7382
+                  }
+                },
+                {
+                  "category": "chat",
+                  "duration_ms": {
+                    "max": 6482.328833,
+                    "mean": 6398.268341333333,
+                    "min": 6328.689844,
+                    "p50": 6383.786347,
+                    "p95": 6472.4745844
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 44,
+                  "memory_peak_gb": 1.7,
+                  "name": "chat-long-output",
+                  "output_tokens": 256,
+                  "tps": {
+                    "max": 41.58007534764435,
+                    "mean": 41.31093671619772,
+                    "min": 41.01367213189869,
+                    "p50": 41.33906266905012,
+                    "p95": 41.55597407978493
+                  },
+                  "ttft_ms": {
+                    "max": 225.253,
+                    "mean": 186.04566666666665,
+                    "min": 156.796,
+                    "p50": 176.088,
+                    "p95": 220.3365
+                  }
+                },
+                {
+                  "category": "coding",
+                  "duration_ms": {
+                    "max": 1473.51004,
+                    "mean": 1458.5109396666667,
+                    "min": 1444.3804,
+                    "p50": 1457.642379,
+                    "p95": 1471.9232739
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 34,
+                  "memory_peak_gb": 1.7,
+                  "name": "code-short",
+                  "output_tokens": 60,
+                  "tps": {
+                    "max": 48.19799737320914,
+                    "mean": 46.79742202186384,
+                    "min": 45.23338163253305,
+                    "p50": 46.9608870598493,
+                    "p95": 48.074286341873155
+                  },
+                  "ttft_ms": {
+                    "max": 183.095,
+                    "mean": 159.58033333333333,
+                    "min": 114.376,
+                    "p50": 181.27,
+                    "p95": 182.9125
+                  }
+                },
+                {
+                  "category": "coding",
+                  "duration_ms": {
+                    "max": 3863.923082,
+                    "mean": 3796.726215666666,
+                    "min": 3743.849557,
+                    "p50": 3782.406008,
+                    "p95": 3855.7713746
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 166,
+                  "memory_peak_gb": 1.7,
+                  "name": "code-explain",
+                  "output_tokens": 128,
+                  "tps": {
+                    "max": 40.69130716055741,
+                    "mean": 40.3249130981145,
+                    "min": 40.1302477353059,
+                    "p50": 40.1531843984802,
+                    "p95": 40.637494884349685
+                  },
+                  "ttft_ms": {
+                    "max": 660.85,
+                    "mean": 608.4926666666667,
+                    "min": 579.316,
+                    "p50": 585.312,
+                    "p95": 653.2962
+                  }
+                },
+                {
+                  "category": "coding",
+                  "duration_ms": {
+                    "max": 3932.028306,
+                    "mean": 3902.6188346666663,
+                    "min": 3845.068808,
+                    "p50": 3930.75939,
+                    "p95": 3931.9014144000002
+                  },
+                  "failed_runs": 0,
+                  "input_tokens": 330,
+                  "memory_peak_gb": 1.7,
+                  "name": "code-debug",
+                  "output_tokens": 100,
+                  "tps": {
+                    "max": 38.17277609223764,
+                    "mean": 38.043950917890676,
+                    "min": 37.95891858077677,
+                    "p50": 38.00015808065761,
+                    "p95": 38.15551429107964
+                  },
+                  "ttft_ms": {
+                    "max": 1286.877,
+                    "mean": 1253.0423333333333,
+                    "min": 1191.183,
+                    "p50": 1281.067,
+                    "p95": 1286.2959999999998
+                  }
+                }
+              ]
+            }
+          ],
+          "timestamp": "2026-08-10T05:33:07Z"
+        }
+      ],
+      "timestamp": "2026-08-10T05:33:07Z"
+    },
+    "bench_returncode": 0,
+    "cli_version": "lemonade version 11.5.2",
+    "command": [
+      "bench",
+      "Qwen3-0.6B-GGUF",
+      "--backend",
+      "cpu",
+      "--runs",
+      "3",
+      "--json",
+      "--output",
+      "/tmp/lemonmetrics-bench.json"
+    ],
+    "models_available": [
+      "Qwen3-0.6B-GGUF"
+    ],
+    "server_healthy": true,
+    "server_root": "http://localhost:13305"
+  },
+  "lemonmetrics_version": "0.1.0",
+  "power": {
+    "available": true,
+    "avg_watts": 25.392,
+    "baseline": {
+      "avg_watts": 6.934,
+      "duration_s": 8.914,
+      "max_watts": 8.79,
+      "min_watts": 5.35,
+      "samples": 8,
+      "samples_raw": [
+        {
+          "ts": 784697.396201549,
+          "watts": 6.76
+        },
+        {
+          "ts": 784698.669399859,
+          "watts": 8.3
+        },
+        {
+          "ts": 784699.94673293,
+          "watts": 5.58
+        },
+        {
+          "ts": 784701.219218615,
+          "watts": 7.81
+        },
+        {
+          "ts": 784702.491381097,
+          "watts": 5.35
+        },
+        {
+          "ts": 784703.761403746,
+          "watts": 8.79
+        },
+        {
+          "ts": 784705.037290293,
+          "watts": 5.89
+        },
+        {
+          "ts": 784706.310056794,
+          "watts": 6.99
+        }
+      ]
+    },
+    "duration_s": 110.682,
+    "energy_joules": 2810.43,
+    "max_watts": 70.97,
+    "min_watts": 7.66,
+    "sampler": "powermetrics",
+    "samples": 83,
+    "samples_raw": [
+      {
+        "ts": 784707.606646643,
+        "watts": 14.67
+      },
+      {
+        "ts": 784708.959609793,
+        "watts": 18.6
+      },
+      {
+        "ts": 784710.244781929,
+        "watts": 28.88
+      },
+      {
+        "ts": 784711.647190458,
+        "watts": 9.59
+      },
+      {
+        "ts": 784712.923882425,
+        "watts": 13.5
+      },
+      {
+        "ts": 784714.21111302,
+        "watts": 19.09
+      },
+      {
+        "ts": 784715.558308719,
+        "watts": 21.04
+      },
+      {
+        "ts": 784716.926425025,
+        "watts": 15.61
+      },
+      {
+        "ts": 784718.207699641,
+        "watts": 9.73
+      },
+      {
+        "ts": 784719.492273826,
+        "watts": 14.82
+      },
+      {
+        "ts": 784720.845522358,
+        "watts": 28.31
+      },
+      {
+        "ts": 784722.123316496,
+        "watts": 9.39
+      },
+      {
+        "ts": 784723.409137733,
+        "watts": 14.04
+      },
+      {
+        "ts": 784724.740911126,
+        "watts": 31.66
+      },
+      {
+        "ts": 784726.166726293,
+        "watts": 37.11
+      },
+      {
+        "ts": 784727.664745919,
+        "watts": 37.55
+      },
+      {
+        "ts": 784729.12893525,
+        "watts": 37.83
+      },
+      {
+        "ts": 784730.549259008,
+        "watts": 38.15
+      },
+      {
+        "ts": 784731.859686567,
+        "watts": 9.33
+      },
+      {
+        "ts": 784733.142747472,
+        "watts": 9.45
+      },
+      {
+        "ts": 784734.431330742,
+        "watts": 19.0
+      },
+      {
+        "ts": 784735.84769892,
+        "watts": 36.04
+      },
+      {
+        "ts": 784737.251986213,
+        "watts": 36.27
+      },
+      {
+        "ts": 784738.659188763,
+        "watts": 37.21
+      },
+      {
+        "ts": 784740.07250483,
+        "watts": 37.35
+      },
+      {
+        "ts": 784741.517435452,
+        "watts": 18.54
+      },
+      {
+        "ts": 784742.870153974,
+        "watts": 9.58
+      },
+      {
+        "ts": 784744.180296009,
+        "watts": 19.96
+      },
+      {
+        "ts": 784745.495843706,
+        "watts": 37.98
+      },
+      {
+        "ts": 784746.938700929,
+        "watts": 34.83
+      },
+      {
+        "ts": 784748.356073459,
+        "watts": 35.65
+      },
+      {
+        "ts": 784749.790663894,
+        "watts": 36.6
+      },
+      {
+        "ts": 784751.27358573,
+        "watts": 33.24
+      },
+      {
+        "ts": 784752.554143101,
+        "watts": 10.94
+      },
+      {
+        "ts": 784753.83072265,
+        "watts": 12.36
+      },
+      {
+        "ts": 784755.135207591,
+        "watts": 25.01
+      },
+      {
+        "ts": 784756.554460603,
+        "watts": 32.18
+      },
+      {
+        "ts": 784757.895747576,
+        "watts": 7.95
+      },
+      {
+        "ts": 784759.17408804,
+        "watts": 13.77
+      },
+      {
+        "ts": 784760.48996945,
+        "watts": 27.95
+      },
+      {
+        "ts": 784761.909296775,
+        "watts": 28.69
+      },
+      {
+        "ts": 784763.247229172,
+        "watts": 7.92
+      },
+      {
+        "ts": 784764.539579454,
+        "watts": 12.67
+      },
+      {
+        "ts": 784765.845893051,
+        "watts": 30.73
+      },
+      {
+        "ts": 784767.263861803,
+        "watts": 28.25
+      },
+      {
+        "ts": 784768.545713538,
+        "watts": 8.4
+      },
+      {
+        "ts": 784769.825691924,
+        "watts": 14.4
+      },
+      {
+        "ts": 784771.132107776,
+        "watts": 45.49
+      },
+      {
+        "ts": 784772.522704895,
+        "watts": 35.92
+      },
+      {
+        "ts": 784773.940054896,
+        "watts": 37.06
+      },
+      {
+        "ts": 784775.330172285,
+        "watts": 13.02
+      },
+      {
+        "ts": 784776.66845043,
+        "watts": 7.66
+      },
+      {
+        "ts": 784777.948569914,
+        "watts": 18.52
+      },
+      {
+        "ts": 784779.271924753,
+        "watts": 57.44
+      },
+      {
+        "ts": 784780.695801979,
+        "watts": 36.43
+      },
+      {
+        "ts": 784782.110112855,
+        "watts": 33.02
+      },
+      {
+        "ts": 784783.461546252,
+        "watts": 11.9
+      },
+      {
+        "ts": 784784.744464884,
+        "watts": 12.12
+      },
+      {
+        "ts": 784786.043292817,
+        "watts": 20.38
+      },
+      {
+        "ts": 784787.329501188,
+        "watts": 42.32
+      },
+      {
+        "ts": 784788.727538541,
+        "watts": 37.02
+      },
+      {
+        "ts": 784790.217345146,
+        "watts": 36.51
+      },
+      {
+        "ts": 784791.616063173,
+        "watts": 13.9
+      },
+      {
+        "ts": 784792.892447832,
+        "watts": 9.22
+      },
+      {
+        "ts": 784794.171267064,
+        "watts": 18.67
+      },
+      {
+        "ts": 784795.492461933,
+        "watts": 70.97
+      },
+      {
+        "ts": 784796.939223256,
+        "watts": 36.88
+      },
+      {
+        "ts": 784798.343474595,
+        "watts": 37.28
+      },
+      {
+        "ts": 784799.645697222,
+        "watts": 8.95
+      },
+      {
+        "ts": 784800.942798896,
+        "watts": 14.22
+      },
+      {
+        "ts": 784802.221615586,
+        "watts": 17.1
+      },
+      {
+        "ts": 784803.498241065,
+        "watts": 23.3
+      },
+      {
+        "ts": 784804.86550394,
+        "watts": 68.89
+      },
+      {
+        "ts": 784806.267028871,
+        "watts": 37.28
+      },
+      {
+        "ts": 784807.680261209,
+        "watts": 32.52
+      },
+      {
+        "ts": 784808.961609632,
+        "watts": 8.94
+      },
+      {
+        "ts": 784810.23833025,
+        "watts": 10.8
+      },
+      {
+        "ts": 784811.537970737,
+        "watts": 20.43
+      },
+      {
+        "ts": 784812.90151101,
+        "watts": 67.63
+      },
+      {
+        "ts": 784814.315620767,
+        "watts": 37.66
+      },
+      {
+        "ts": 784815.723834044,
+        "watts": 29.44
+      },
+      {
+        "ts": 784817.011136558,
+        "watts": 13.97
+      },
+      {
+        "ts": 784818.288675243,
+        "watts": 12.85
+      }
+    ]
+  },
+  "schema_version": "1.0",
+  "wall": {
+    "duration_s": 111.4,
+    "finished_at": "2026-08-10T05:34:59+00:00",
+    "started_at": "2026-08-10T05:33:07+00:00"
+  }
+}

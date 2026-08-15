@@ -1,0 +1,209 @@
+---
+import type { RunSummary } from "../data/load";
+import { bestPerCombo, voteKey } from "../data/load";
+import { loadStaticVotes, isFlagged } from "../data/votes";
+
+interface Props {
+  runs: RunSummary[];
+}
+const { runs } = Astro.props;
+const staticVotes = loadStaticVotes().votes;
+
+const best = bestPerCombo(runs).filter((r) => !isFlagged(staticVotes[voteKey(r)]));
+
+const rows = best.map((run) => ({
+  key: voteKey(run),
+  deviceId: run.deviceId,
+  runId: run.runId,
+  cpuModel: run.cpuModel,
+  model: run.model,
+  backend: run.backend,
+  powerAvailable: run.powerAvailable,
+  joulesPerToken: run.joulesPerToken,
+  meanTps: run.meanTps,
+  peakWatts: run.peakWatts,
+  tokensPerKwh: run.tokensPerKwh,
+  generatedAt: run.generatedAt,
+  votes: staticVotes[voteKey(run)] ?? null,
+}));
+
+const devices = [...new Set(best.map((r) => r.deviceId))].sort();
+const backends = [...new Set(best.map((r) => r.backend))].sort();
+---
+
+<div class="filters" id="filters">
+  <label>
+    Device
+    <select id="filter-device">
+      <option value="all">All</option>
+      {devices.map((d) => <option value={d}>{d}</option>)}
+    </select>
+  </label>
+  <label>
+    Backend
+    <select id="filter-backend">
+      <option value="all">All</option>
+      {backends.map((b) => <option value={b}>{b}</option>)}
+    </select>
+  </label>
+  <span class="muted note">
+    One row per device × model × backend. Best = lowest J/token; perf-only runs
+    rank by tok/s. Flagged runs are hidden.
+  </span>
+</div>
+
+<div class="table-wrap">
+  <table id="board">
+    <thead>
+      <tr>
+        <th data-key="cpuModel">Device</th>
+        <th data-key="model">Model</th>
+        <th data-key="backend">Backend</th>
+        <th class="num" data-key="joulesPerToken">J/token</th>
+        <th class="num" data-key="meanTps">tok/s</th>
+        <th class="num" data-key="peakWatts">peak W</th>
+        <th class="num" data-key="tokensPerKwh">tok/kWh</th>
+        <th>Votes</th>
+        <th class="num" data-key="generatedAt">when</th>
+      </tr>
+    </thead>
+    <tbody id="board-body"></tbody>
+  </table>
+</div>
+
+<script type="application/json" id="board-data" set:html={JSON.stringify(rows)}></script>
+
+<script>
+  import { bindVoteWidget, fetchLiveVotes, highlightMyVotes, isFlagged } from "../lib/votes";
+
+  interface Row {
+    key: string;
+    deviceId: string;
+    runId: string;
+    cpuModel: string;
+    model: string;
+    backend: string;
+    powerAvailable: boolean;
+    joulesPerToken: number | null;
+    meanTps: number | null;
+    peakWatts: number | null;
+    tokensPerKwh: number | null;
+    generatedAt: string;
+    votes: { up: number; down: number } | null;
+  }
+
+  const rows: Row[] = JSON.parse(document.getElementById("board-data")!.textContent!);
+  const tableBody = document.getElementById("board-body")!;
+  const deviceFilter = document.getElementById("filter-device") as HTMLSelectElement;
+  const backendFilter = document.getElementById("filter-backend") as HTMLSelectElement;
+  let sortKey = "joulesPerToken";
+  let sortDir: "asc" | "desc" = "asc";
+  const liveFlagged = new Set<string>();
+
+  function backendClass(backend: string): string {
+    const b = backend.toLowerCase();
+    if (b.includes("npu")) return "tag-npu";
+    if (b.includes("vulkan")) return "tag-vulkan";
+    return "tag-cpu";
+  }
+
+  function shortCpu(cpu: string): string {
+    return cpu.replace(/Intel\(R\)|AMD |Ryzen |Core\(TM\)|@ [\d.]+GHz|Processor/gi, "").replace(/\s+/g, " ").trim();
+  }
+
+  function enc(s: string): string {
+    return encodeURIComponent(s);
+  }
+
+  function voteMarkup(key: string, votes: { up: number; down: number } | null): string {
+    const up = votes?.up ?? 0;
+    const down = votes?.down ?? 0;
+    return `<span class="votes" data-vote-key="${key}">
+      <button type="button" class="vote-btn" data-vote-dir="1" title="This result looks trustworthy">▲</button>
+      <span class="vote-count" data-vote-count="up">${up}</span>
+      <button type="button" class="vote-btn" data-vote-dir="-1" title="This result looks wrong or fake">▼</button>
+      <span class="vote-count" data-vote-count="down">${down}</span>
+    </span>`;
+  }
+
+  function render() {
+    const dev = deviceFilter.value;
+    const bke = backendFilter.value;
+    let list = rows.filter((r) =>
+      (dev === "all" || r.deviceId === dev) &&
+      (bke === "all" || r.backend === bke) &&
+      !liveFlagged.has(r.key),
+    );
+
+    const dir = sortDir === "asc" ? 1 : -1;
+    list = list.slice().sort((a, b) => {
+      const av = (a as any)[sortKey];
+      const bv = (b as any)[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
+    });
+
+    tableBody.innerHTML = list
+      .map((r) => {
+        const link = `/runs/${enc(r.deviceId)}/${enc(r.runId)}/`;
+        const jpt = r.joulesPerToken == null ? "—" : r.joulesPerToken.toFixed(4);
+        const tps = r.meanTps == null ? "—" : r.meanTps.toFixed(1);
+        const peak = r.peakWatts == null ? "—" : `${r.peakWatts.toFixed(1)}`;
+        const tpk = r.tokensPerKwh == null ? "—" : r.tokensPerKwh.toLocaleString();
+        const when = r.generatedAt ? r.generatedAt.slice(0, 10) : "—";
+        return `<tr>
+        <td><a href="${link}">${shortCpu(r.cpuModel)}</a><div class="sub">${r.deviceId}</div></td>
+        <td>${r.model}</td>
+        <td><span class="pill ${backendClass(r.backend)}">${r.backend}</span></td>
+        <td class="num">${jpt}</td>
+        <td class="num">${tps}</td>
+        <td class="num">${peak}</td>
+        <td class="num">${tpk}</td>
+        <td>${voteMarkup(r.key, r.votes)}</td>
+        <td class="num">${when}</td>
+      </tr>`;
+      })
+      .join("");
+
+    highlightMyVotes();
+    updateSortMarkers();
+  }
+
+  function updateSortMarkers() {
+    document.querySelectorAll("th[data-key]").forEach((th) => {
+      th.classList.toggle("sort-asc", th.dataset.key === sortKey && sortDir === "asc");
+      th.classList.toggle("sort-desc", th.dataset.key === sortKey && sortDir === "desc");
+    });
+  }
+
+  document.querySelectorAll("th[data-key]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = (th as HTMLElement).dataset.key!;
+      if (key === sortKey) sortDir = sortDir === "asc" ? "desc" : "asc";
+      else {
+        sortKey = key;
+        sortDir = key === "generatedAt" ? "desc" : "asc";
+      }
+      render();
+    });
+  });
+
+  deviceFilter.addEventListener("change", render);
+  backendFilter.addEventListener("change", render);
+
+  fetchLiveVotes().then((votes) => {
+    let changed = false;
+    for (const [key, v] of Object.entries(votes)) {
+      if (isFlagged(v)) {
+        liveFlagged.add(key);
+        changed = true;
+      }
+    }
+    if (changed) render();
+  });
+
+  bindVoteWidget();
+  render();
+</script>
